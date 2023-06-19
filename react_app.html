@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HTTP Request</title>
+    <link rel="stylesheet" href="react_app.css" />
+    <script src="react_app.jsx"></script>
+  </head>
+  <body>
+    <h1>HTTP Request</h1>
+    <form>
+      <div>
+        <label for="firstname">First Name:</label>
+        <input type="text" name="firstname" id="firstname" />
+      </div>
+      <div>
+        <label for="lastname">Last Name:</label>
+        <input type="text" name="lastname" id="lastname" />
+      </div>
+      <!-- <input type="submit" value="Submit" /> -->
+      <div>
+        <label for="studentid">Student ID:</label>
+        <input type="text" name="studentid" id="studentid" />
+      </div>
+      <!-- <input type="submit" value="Submit" /> -->
+      <div>
+        <label for="email">Email:</label>
+        <input type="text" name="email" id="email" />
+      </div>
+      <!-- <input type="submit" value="Submit" /> -->
+    </form>
+    <button id="requestButton">Send HTTPS Request</button>
+    <button id="lazyFetchButton">Sciągnij uczniów</button>
+    <div id="StudentsList">
+
+    </div>
+
+    <script>
+      // Attach a click event listener to the button
+      document
+        .getElementById("requestButton")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Prevent form submission
+
+          // Create a new student object with field information
+          var student = {
+            first_name: document.getElementById("firstname").value,
+            last_name: document.getElementById("lastname").value,
+            studentid: document.getElementById("studentid").value,
+            email: document.getElementById("email").value,
+          };
+
+          // Make a POST request to the FastAPI server
+          fetch("http://127.0.0.1:8000/students", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(student),
+          })
+            .then((response) => {
+              if (response.ok) {
+                // Request was successful
+                return response.json();
+              } else {
+                // Request failed
+                throw new Error("Request failed. Status: " + response.status);
+              }
+            })
+            .then((data) => {
+              // Handle the response data
+              alert("Request successful! Response: " + JSON.stringify(data));
+            })
+            .catch((error) => {
+              // Handle any errors that occurred during the request
+              alert(error.message);
+            });
+        });
+
+      document
+        .getElementById("lazyFetchButton")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); // Prevent form submission
+
+          fetch("http://127.0.0.1:8000/students/", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            }
+          })
+            .then((response) => {
+              if (response.ok) {
+                // Request was successful
+                console.log(response);
+                response.json().then(data => {
+                  console.log(data);
+
+                  data.forEach(student => {
+                    const StudentDiv = document.createElement("div");
+                    StudentDiv.innerHTML = `<span>Id: ${student.id}</span>
+                      <span>Imię: ${student.first_name}</span>
+                      <span>Nazwisko: ${student.last_name}</span>
+                      <span>Email: ${student.email}</span>
+                      <button>Usuń</buttton>`;
+                      
+                    document.getElementById("StudentsList").appendChild(StudentDiv);
+
+                    StudentDiv.lastElementChild.addEventListener("click", () => {
+                      fetch(`http://127.0.0.1:8000/students/${student.id}`, {
+                        method: "DELETE",
+                        headers: {
+                          "Content-Type": "application/json",
+                        }
+                      }).then((response) => {
+                        if (response.ok) {
+                          // Request was successful
+                          StudentDiv.remove();
+                        }
+                      })
+                    })
+                  });
+                });
+              } else {
+                // Request failed
+                throw new Error("Request failed. Status: " + response.status);
+              }
+            })
+            .then((data) => {
+              // Handle the response data
+              alert("Request successful! Response: " + JSON.stringify(data));
+            })
+            .catch((error) => {
+              // Handle any errors that occurred during the request
+              alert(error.message);
+            });
+        });
+    </script>
+  </body>
+</html>
